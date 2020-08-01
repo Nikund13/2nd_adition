@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Socet.io</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <style type="text/css">
+    .scrollable {
+      height: 300px;
+      overflow-y: scroll;
+    }
+  </style>
+</head>
+<body>
+<div class="container" >
+    <br>
+    <div class="jumbotron">
+        <h1 class="display-4">Blog post</h1>
+        <form action="">
+        <br>
+        <input id = "title" class="form-control" placeholder="Enter title" required >
+        <br>
+        <textarea id = "message" class="form-control" placeholder="write message" required></textarea>
+        <br>
+        <button id="send" class="btn btn-success button_show" disabled="disabled">Post</button>
+      </form>
+         
+    </div>
+    
+    <div id="messages" class="scrollable">
+    
+    </div>
+    <button id="deleteAll" class="btn btn-danger text-center">Delete all</button>
+</div>
+
+<script>
+var empty;
+$('.jumbotron form input').on('keyup', function(){
+  $('.jumbotron form input').each(function() {
+      empty = $(this).val().length == 0;
+    });
+    $('.jumbotron form textarea').each(function() {
+    text_empty = $(this).val().length == 0;
+  });
+    if (empty || text_empty)
+      $('.button_show').attr('disabled', 'disabled');
+    else
+      $('.button_show').attr('disabled', false);
+})
+
+$('.jumbotron form textarea').on('keyup', function(){
+  console.log('Text legth', empty);
+  $('.jumbotron form input').each(function() {
+      text_empty = $(this).val().length == 0;
+    });
+  $('.jumbotron form textarea').each(function() {
+    empty = $(this).val().length == 0;
+  });
+  if (empty || text_empty)
+      $('.button_show').attr('disabled', 'disabled');
+    else
+      $('.button_show').attr('disabled', false);
+})
+
+
+
+   var socket = io();
+    $(() => {
+        $("#send").click(()=>{
+          if($("#title").val()!="" && $("#message").val()!=''){
+            text=$("#message").val().replace(/\n/g,"<br>")
+            console.log(text)
+            sendMessage({title: $("#title").val(), message: text});
+           
+            $("#title").val("");
+            $("#message").val("");
+            $('.button_show').attr('disabled', 'disabled');
+            return false;
+          }
+        })
+        getMessages()
+    })
+    $("#deleteAll").click(()=>{
+      deleteMessages()
+      $("#messages").empty();
+    })
+    socket.on('message', addMessages)
+
+    function addMessages(message){
+        $("#messages").append(`<h4> ${message.title} </h4><br><p> ${message.message} </p><hr style="border-width: 10px">`)
+        $('#messages').scrollTop($('#messages')[0].scrollHeight);
+    }
+
+    socket.on('delete',getMessages)
+    function getMessages(){
+      $.get('http://localhost:3000/messages', (data) => {
+        data.forEach(addMessages);
+        
+      })
+    }
+    function sendMessage(message){
+      $.post('http://localhost:3000/messages', message)
+    }
+    function deleteMessages(){
+      $.post('http://localhost:3000/delete')
+    }
+</script>
+</body>
+</html>
