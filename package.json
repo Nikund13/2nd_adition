@@ -18,7 +18,7 @@
     "graphql-request": "^2.0.0",
     "mongoose": "^5.9.26",
     "nodemon": "^2.0.4",
-    "socket.io": "^2.1.1"
+    "socket.io": "^2.5.0"
   },
   "devDependencies": {
     "jasmine": "^3.1.0",
